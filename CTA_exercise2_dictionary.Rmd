@@ -40,7 +40,7 @@ library(textdata)
 ```
 
 ```{r, message=F}
-library(academictwitteR) # for fetching Twitter data
+#library(academictwitteR) # for fetching Twitter data
 ```
 
 First off: always check that you have the right working directory
@@ -79,7 +79,8 @@ saveRDS(tweets, "data/sentanalysis/newstweets.rds")
 You can download the tweets data directly from the source in the following way: the data was collected by Chris Barrie and is stored on his Github page.
 
 ```{r, eval = F}
-tweets  <- readRDS(gzcon(url("https://github.com/cjbarrie/CTA-ED/blob/main/data/sentanalysis/newstweets.rds?raw=true")))
+tweets  <- readRDS(gzcon(url("https://github.com/cjbarrie/CTA-ED/blob/main/data/sentanalysis/newstweets.rds?raw=true")))1
+
 ```
 
 
@@ -88,6 +89,11 @@ tweets  <- readRDS(gzcon(url("https://github.com/cjbarrie/CTA-ED/blob/main/data/
 Let's have a look at the data:
 
 ```{r}
+tweets_url <- "https://github.com/cjbarrie/CTA-ED/blob/main/data/sentanalysis/newstweets.rds?raw=true"
+tmp <- tempfile(fileext = ".rds")
+download.file(tweets_url, tmp, mode = "wb")
+tweets <- readRDS(tmp)
+
 head(tweets)
 colnames(tweets)
 ```
@@ -318,7 +324,7 @@ With the `quanteda` package we first need to create a "corpus" object, by declar
 ```{r}
 tweets$date <- as.Date(tweets$created_at)
 
-tweet_corpus <- corpus(tweets, text_field = "tweet", docvars = "date")
+tweet_corpus <- corpus(tweets, text_field = "tweet")
 ```
 
 
@@ -490,22 +496,20 @@ dfm_dict_trans <- toks_news %>%
   dfm_group(groups = username) %>% # group by newspaper
   convert(to = "data.frame") %>% # convert it to a dataframe
   rename("newspaper" = doc_id) %>% # rename variable 
-  full_join(totals_newspaper, word, by="newspaper")
+  full_join(totals_newspaper, by="newspaper")
   
 # then just tweak the same code as before
-tidy_dfm_trans <- dfm_trans %>% 
-  dfm_group(groups = newspaper) %>% # we group by newspaper
-  convert(to = "data.frame") %>% # convert it to a dataframe
-  rename("newspaper" = doc_id) # rename variable
 
-# plot by newspaper
-tidy_dfm_trans %>%
-  ggplot() + # when we enter ggplot environment we need to use '+' not '%>%', 
-  geom_point(aes(x=reorder(newspaper, -sentiment), y=sentiment)) + # reordering newspaper variable so it is displayed from most negative to most positive
-  coord_flip() + # pivot plot by 90 degrees
-  xlab("Newspapers") + # label x axis
-  ylab("Overall tweet sentiment (negative to positive)") + # label y axis
-  theme_minimal() # pretty graphic theme
+
+# plot by newspaper (counts)
+dfm_dict_trans %>%
+  mutate(any = trans + terf) %>%
+  ggplot(aes(x = reorder(newspaper, any), y = any)) +
+  geom_point() +
+  coord_flip() +
+  xlab("Newspapers") +
+  ylab("Counts of trans/terf dictionary hits") +
+  theme_minimal()
 ```
 
 
