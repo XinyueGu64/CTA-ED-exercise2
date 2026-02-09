@@ -1,6 +1,6 @@
 ---
 title: "CTA-ED Exercise 2: dictionary-based methods"
-author: "Marion Lieutaud"
+author: "Xinyue GU Junke Guan"
 date: "2/14/2024"
 output: html_document
 ---
